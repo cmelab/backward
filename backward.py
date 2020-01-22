@@ -7,7 +7,13 @@ authors=["Tsjerk A. Wassenaar"]
 
 ##
 
-import sys, random, math, re, os, itertools
+import itertools
+import math
+import os
+import random
+import re
+import sys
+
 import Mapping
 
 ##
@@ -77,7 +83,7 @@ solvent = {
     "NA+": [("NA",0.00,0.00,0.00)] + fourWaters,
 }
 
-solvent_stuff = solvent.keys()
+solvent_stuff = list(solvent.keys())
 ion_stuff     = ["ION","CL","CL-","NA","NA+"]
 
 
@@ -192,7 +198,7 @@ def det(A):
 def m_inv(A):
     u,v,w = A
     d = 1.0/det(A)
-    I = zip(*(crossprod(v,w),crossprod(w,u),crossprod(u,v)))
+    I = list(zip(*(crossprod(v,w),crossprod(w,u),crossprod(u,v))))
     return [[d*i for i in j] for j in I]
 
 def vr(a):
@@ -347,12 +353,12 @@ class Structure:
         # coordinates and add to the coordinates of the first atom.
         A, B = None, None
         if self.box:
-            A = zip(*self.box)
+            A = list(zip(*self.box))
             try:
                 B = m_inv(A)
                 self.residues = [ unbreak(i,A,B) for i in self.residues ]
             except ZeroDivisionError:
-                print "Non-invertable box. Not able to unbreak molecules..."
+                print("Non-invertable box. Not able to unbreak molecules...")
 
 
         # Check for protein chains and breaks
@@ -532,14 +538,14 @@ class Topology:
 
 
         # Convert moleculetypes to dictionary
-        self.moleculetypes = dict(zip(moltypes,atoms))
+        self.moleculetypes = dict(list(zip(moltypes,atoms)))
 
         molecules = [(i,len(list(j))) for i,j in itertools.groupby(self.molecules)]
 
         # Build a full atom list
         # The chain identifier is unique for each molecule
         # The moleculetype name is added as last element
-        mr = zip(self.molecules, range(len(self.molecules)))
+        mr = list(zip(self.molecules, list(range(len(self.molecules)))))
         self.atoms = [[a,r,i,c,0,0,0,t] for t,c in mr for a,r,i,m in self.moleculetypes[t]]
 
         # Build a residue list
@@ -565,7 +571,7 @@ class Option:
         self.num         = num
         self.value       = default
         self.description = description
-    def __nonzero__(self):
+    def __bool__(self):
         if self.func == bool:
             return self.value != None
         return bool(self.value)
@@ -605,11 +611,11 @@ options = [
 # Parsing arguments
 args = sys.argv[1:]
 if '-h' in args or '--help' in args:
-    print "\n",__file__
-    print desc or "\nSomeone ought to write a description for this script...\n"
+    print("\n",__file__)
+    print(desc or "\nSomeone ought to write a description for this script...\n")
     for thing in options:
-        print type(thing) != str and "%10s  %s"%(thing[0],thing[1].description) or thing
-    print
+        print(type(thing) != str and "%10s  %s"%(thing[0],thing[1].description) or thing)
+    print()
     sys.exit()
 
 
@@ -657,7 +663,7 @@ else:
     from_ff     = options["-from"] and options["-from"].value.lower() or "martini"
 mapping     = Mapping.get(source=from_ff,target=to_ff)
 backmapping = levels[from_ff] > levels[to_ff]
-reslist     = mapping.keys()
+reslist     = list(mapping.keys())
 
 
 ##### D. Iterate over atoms to write out, based on residue names
@@ -673,7 +679,7 @@ if top:
     if options["-atomlist"]:
         atm    = open(options["-atomlist"].value,"w")
         topatm = [j for i in topresidues for j in i]
-        atm.writelines("".join(["%6d %5s %5s\n"%(u,v[0],v[1]) for u,v in zip(range(1,len(topatm)+1),topatm)]))
+        atm.writelines("".join(["%6d %5s %5s\n"%(u,v[0],v[1]) for u,v in zip(list(range(1,len(topatm)+1)),topatm)]))
 
 
 # Iterate over residues
@@ -745,7 +751,7 @@ for residue,bb,nterm,cterm in zip(struc.residues,struc.backbone,struc.nterm,stru
 
 
     # Check for solvent
-    if resn in solvent.keys():
+    if resn in list(solvent.keys()):
         cx, cy, cz = residue[0][4:7]
         for atom, x, y, z in solvent[resn]:
             # Should add random rotation
@@ -786,10 +792,10 @@ for residue,bb,nterm,cterm in zip(struc.residues,struc.backbone,struc.nterm,stru
         topres = [i for j in range(mapnum.get(resn,1)) for i in topres]
         # Set the residue name to the moleculetype name
         topres[0][3] = topres[0][7]
-        target = zip(*topres)[0]
+        target = list(zip(*topres))[0]
         # Check for duplicate atom names
         if not len(target) == len(set(target)):
-            print "The target list for residue %s contains duplicate names. Relying on mapping file."%resn
+            print("The target list for residue %s contains duplicate names. Relying on mapping file."%resn)
             target = None
     else:
         target = None
@@ -797,7 +803,7 @@ for residue,bb,nterm,cterm in zip(struc.residues,struc.backbone,struc.nterm,stru
 
     # Except for solvent, the residue name from a topology
     # takes precedence over the one from the structure.
-    if target and topres[0][1] in mapping.keys():
+    if target and topres[0][1] in list(mapping.keys()):
         resn = topres[0][1]
 
 
@@ -810,15 +816,15 @@ for residue,bb,nterm,cterm in zip(struc.residues,struc.backbone,struc.nterm,stru
         p = set(atoms)
         for i in reslist:
             if i.startswith(resn):
-                if p == set([k for j in mapping[i].map.values() for k in j]):
+                if p == set([k for j in list(mapping[i].map.values()) for k in j]):
                     resn = i
                     break
 
 
-    if not resn in mapping.keys():
+    if not resn in list(mapping.keys()):
         # If the residue is still not in the mapping list
         # then there is no other choice that to bail out
-        raise ValueError, "Unknown residue: %s\n"%resn
+        raise ValueError("Unknown residue: %s\n"%resn)
 
 
     o, r = mapping[resn].do(residue,target,bb,nterm,cterm,options["-nt"])
@@ -927,7 +933,7 @@ if options["-n"]:
     ndx_membrane = []
     ndx_solvent  = []
 
-    for i,j in zip(range(1,1+len(out)),out):
+    for i,j in zip(list(range(1,1+len(out))),out):
         if j[1] in protein_stuff:
             ndx_protein.append(i)
         elif j[1] in solvent_stuff:
