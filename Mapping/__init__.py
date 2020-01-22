@@ -91,7 +91,7 @@ class ResidueMap:
 
             # Case of forward mapping: atomistic to martini
             # Initialize dictionary 
-            d = dict(zip(target,[[] for i in target]))
+            d = dict(list(zip(target,[[] for i in target])))
 
             # Fill entries
             # The mapping is specified in full both ways, which
@@ -107,7 +107,7 @@ class ResidueMap:
             self.map   = d
         else:
             self.atoms = x
-            self.map   = dict(zip(x,y))
+            self.map   = dict(list(zip(x,y)))
 
         # Special cases
         self.mod    = mod
@@ -154,7 +154,7 @@ class ResidueMap:
 
         # Atoms we have; the source dictionary
         atoms = [ i[0].strip() for i in residue ]
-        have  = dict(zip(atoms, residue))
+        have  = dict(list(zip(atoms, residue)))
 
 
         # Set array for output; residue to return
@@ -183,12 +183,12 @@ class ResidueMap:
                 got = _average([ have.get(i) for i in self.map[want] ])
             
             if not got:
-                print "Problem determining mapping coordinates for atom %s of residue %s."%(target[0],resn)
-                print "atomlist:", atomlist
-                print "want:", want, self.map[want]
-                print "have:", have.keys()            
-                print "Bailing out..."
-                print target
+                print("Problem determining mapping coordinates for atom %s of residue %s."%(target[0],resn))
+                print("atomlist:", atomlist)
+                print("want:", want, self.map[want])
+                print("have:", list(have.keys()))            
+                print("Bailing out...")
+                print(target)
                 sys.exit(1)
 
 
@@ -245,7 +245,7 @@ class ResidueMap:
 
 
         # Create a lookup dictionary
-        atoms = dict(zip([i[0] for i in out],range(len(out))))
+        atoms = dict(list(zip([i[0] for i in out],list(range(len(out))))))
 
 
         # Create a coordinate dictionary
@@ -341,8 +341,8 @@ class ResidueMap:
                     # Add coordinates to dictionary
                     coord[a] = (x,y,z)
                 else:
-                    print "Not all positions defined for [trans] operation:"
-                    print [(j,coord.get(j)) for j in i]
+                    print("Not all positions defined for [trans] operation:")
+                    print([(j,coord.get(j)) for j in i])
                     
 
                 # The 'trans' definition is also a line of atom names
@@ -391,7 +391,7 @@ class ResidueMap:
                 try:                
                     a,b,c,d = i
                 except ValueError:
-                    print "Invalid trans bond definition in residue %s (%s). Ignoring."%(out[0][1],i)
+                    print("Invalid trans bond definition in residue %s (%s). Ignoring."%(out[0][1],i))
                     continue
 
                 # Source coordinates
@@ -513,7 +513,7 @@ class ResidueMap:
                             w   = [ _normfac*j for j in _normalize(_crossprod(q,p)) ]
                         except ZeroDivisionError:
                             trm = nterm and ", N-terminus" or (cterm and ", C-terminus" or "")
-                            print "Chirality of %s (%s%s) for placing %s undefined by atoms %s. Skipping modification."%(i[1],resn,trm,i[0],repr(i[2:]))
+                            print("Chirality of %s (%s%s) for placing %s undefined by atoms %s. Skipping modification."%(i[1],resn,trm,i[0],repr(i[2:])))
                             continue
     
                         # The coordinates
@@ -596,11 +596,11 @@ def _init():
                                 try:
                                     mapping[(m,  ffi,  cg_ff )] = ResidueMap(target=cg,atoms=aa,name=m)
                                 except:
-                                    print "Error reading %s to %s mapping for %s (file: %s)."%(ffi,cg_ff,m,filename)
+                                    print("Error reading %s to %s mapping for %s (file: %s)."%(ffi,cg_ff,m,filename))
                                 try:
                                     mapping[(m, cg_ff,  ffi  )] = ResidueMap(atoms=aa,mod=mod,name=m)
                                 except:
-                                    print "Error reading %s to %s mapping for %s (file: %s)."%(cg_ff,ffi,m,filename)
+                                    print("Error reading %s to %s mapping for %s (file: %s)."%(cg_ff,ffi,m,filename))
                         
                     # Reset lists
                     aa,ff,mod = [],[],[]
@@ -645,11 +645,11 @@ def _init():
                 try:
                     mapping[(m,  ffi,  cg_ff )] = ResidueMap(target=cg,atoms=aa,name=m)
                 except:
-                    print "Error reading %s to %s mapping for %s (file: %s)."%(ffi,cg_ff,m,filename)
+                    print("Error reading %s to %s mapping for %s (file: %s)."%(ffi,cg_ff,m,filename))
                 try:
                     mapping[(m, cg_ff,  ffi  )] = ResidueMap(atoms=aa,mod=mod,name=m)
                 except:
-                    print "Error reading %s to %s mapping for %s (file: %s)."%(cg_ff,ffi,m,filename)
+                    print("Error reading %s to %s mapping for %s (file: %s)."%(cg_ff,ffi,m,filename))
 
 
     return mapping
@@ -659,8 +659,8 @@ mapping = _init()
 
 
 def get(target="gromos",source="martini"): 
-    D = dict([(i[0],mapping[i]) for i in mapping.keys() if i[1] == source and i[2] == target])
-    print "Residues defined for transformation from %s to %s:"%(source,target)
-    print D.keys()
+    D = dict([(i[0],mapping[i]) for i in list(mapping.keys()) if i[1] == source and i[2] == target])
+    print("Residues defined for transformation from %s to %s:"%(source,target))
+    print(list(D.keys()))
     return D
 
